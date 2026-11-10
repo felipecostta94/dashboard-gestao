@@ -1,30 +1,29 @@
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
-import { Button } from './components/ui/Button';
+import { AppLayout } from './components/layout/AppLayout';
 import { Card } from './components/ui/Card';
-import { LayoutDashboard, LogOut } from 'lucide-react';
 
-function DashboardContent() {
-  const { user, logout } = useAuth();
-
+function DashboardShell() {
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-[#090d16]">
-      <Card className="max-w-md w-full space-y-6 text-center">
-        <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-emerald-600/15 text-emerald-400 border border-emerald-500/20">
-          <LayoutDashboard className="h-6 w-6" />
+    <AppLayout>
+      {(activeTab) => (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-white capitalize">{activeTab}</h1>
+            <span className="text-xs text-slate-400">Visão Geral &gt; {activeTab}</span>
+          </div>
+
+          <Card className="p-8 text-center space-y-2">
+            <h2 className="text-lg font-semibold text-slate-200">
+              Conteúdo da aba: <span className="text-indigo-400 uppercase">{activeTab}</span>
+            </h2>
+            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+              A espinha dorsal de navegação está pronta! Agora só falta preenchermos cada aba com os widgets de métricas e gráficos.
+            </p>
+          </Card>
         </div>
-        <div className="space-y-1">
-          <h1 className="text-xl font-bold text-white">Bem-vindo, {user?.name}!</h1>
-          <p className="text-xs text-slate-400">{user?.email}</p>
-        </div>
-        <p className="text-xs text-slate-500">
-          Sessão autenticada com sucesso. Este é o ponto de partida do nosso Dashboard SaaS.
-        </p>
-        <Button variant="danger" size="md" onClick={logout} className="w-full gap-2">
-          <LogOut className="h-4 w-4" /> Terminar sessão
-        </Button>
-      </Card>
-    </div>
+      )}
+    </AppLayout>
   );
 }
 
@@ -33,13 +32,13 @@ function MainRouter() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#090d16] text-slate-400 text-sm">
+      <div className="flex min-h-screen items-center justify-center bg-[#070a11] text-slate-400 text-sm">
         A carregar...
       </div>
     );
   }
 
-  return isAuthenticated ? <DashboardContent /> : <Login />;
+  return isAuthenticated ? <DashboardShell /> : <Login />;
 }
 
 export function App() {
