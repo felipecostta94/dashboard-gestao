@@ -7,6 +7,7 @@ import { RecentTransactions } from './components/dashboard/RecentTransactions';
 import { Settings } from './pages/Settings';
 import { Customers } from './pages/Customers';
 import { Analytics } from './pages/Analytics';
+import { Transactions } from './pages/Transactions';
 import { Card } from './components/ui/Card';
 
 function DashboardShell() {
@@ -73,11 +74,13 @@ function DashboardShell() {
             </div>
           )}
 
+          {activeTab === 'transactions' && <Transactions />}
           {activeTab === 'analytics' && <Analytics />}
           {activeTab === 'customers' && <Customers />}
           {activeTab === 'settings' && <Settings />}
 
           {activeTab !== 'dashboard' &&
+            activeTab !== 'transactions' &&
             activeTab !== 'analytics' &&
             activeTab !== 'customers' &&
             activeTab !== 'settings' && (
