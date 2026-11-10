@@ -14,7 +14,9 @@ export function AppLayout({ children }: AppLayoutProps) {
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header />
+        {/* Passamos o setActiveTab para o Header controlar a navegação */}
+        <Header onNavigate={(tab) => setActiveTab(tab)} />
+        
         <main className="flex-1 overflow-y-auto p-6">
           {children(activeTab)}
         </main>
