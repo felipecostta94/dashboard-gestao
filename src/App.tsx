@@ -5,6 +5,7 @@ import { MetricsGrid } from './components/dashboard/MetricsGrid';
 import { RevenueChart } from './components/dashboard/RevenueChart';
 import { RecentTransactions } from './components/dashboard/RecentTransactions';
 import { Settings } from './pages/Settings';
+import { Customers } from './pages/Customers';
 import { Card } from './components/ui/Card';
 
 function DashboardShell() {
@@ -71,9 +72,10 @@ function DashboardShell() {
             </div>
           )}
 
+          {activeTab === 'customers' && <Customers />}
           {activeTab === 'settings' && <Settings />}
 
-          {activeTab !== 'dashboard' && activeTab !== 'settings' && (
+          {activeTab !== 'dashboard' && activeTab !== 'customers' && activeTab !== 'settings' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl font-bold text-white capitalize">{activeTab}</h1>
