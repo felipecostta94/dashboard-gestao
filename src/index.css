@@ -1,1 +1,140 @@
 @import "tailwindcss";
+
+:root.light {
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
+}
+
+/* ==========================================
+   MODO CLARO (LIGHT MODE) - CORPORATIVO PROFISSIONAL
+   ========================================== */
+html.light main {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Barra lateral, Header e Navegação no modo claro */
+html.light aside,
+html.light header,
+html.light nav {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light aside div,
+html.light aside nav {
+  background-color: #ffffff !important;
+}
+
+/* Logo na Sidebar */
+html.light aside .logo .bg-indigo-600 {
+  background-color: #4f46e5 !important;
+  color: #fff !important;
+}
+html.light aside .logo .text-white.font-bold {
+  color: var(--color-indigo-400);
+}
+
+/* Opções do Menu de Navegação no Light Mode */
+html.light .footer-side .user .text-slate-200{
+  color: #000;
+}
+
+/* 2. Cabeçalho principal (.page-header) com título e subtítulo escuros/azulado */
+html.light main h1 {
+  color: #0f172a !important;
+}
+
+/* 3. Números e valores em destaque dentro dos cards (pesquisando por classes de tamanho/peso) */
+html.light div[class*="bg-slate-9"] div[class*="text-2xl"],
+html.light div[class*="bg-slate-9"] div[class*="text-xl"],
+html.light div[class*="bg-slate-9"] .font-bold {
+  color: #0f172a !important;
+}
+
+/* ==========================================
+   CARTÕES E INPUTS
+   ========================================== */
+
+/* Cartões (Cards) limpos com fundo branco e sombra suave */
+html.light .bg-slate-900,
+html.light .bg-slate-950,
+html.light div[class*="bg-slate-9"] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Campos de Input, Select e Busca */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Bordas e Divisores */
+html.light .border-slate-800,
+html.light .border-slate-800\/60,
+html.light .border-slate-800\/80 {
+  border-color: #e2e8f0 !important;
+}
+
+/* ==========================================
+   AJUSTE DE TEXTOS DENTRO DOS CARDS (BOXES)
+   ========================================== */
+html.light .bg-slate-900 h1,
+html.light .bg-slate-900 h2,
+html.light .bg-slate-900 h3,
+html.light .bg-slate-900 h4,
+html.light div[class*="bg-slate-9"] h1,
+html.light div[class*="bg-slate-9"] h2,
+html.light div[class*="bg-slate-9"] h3,
+html.light div[class*="bg-slate-9"] h4 {
+  color: #0f172a !important;
+}
+html.light span.text-slate-200,
+html.light label.text-slate-300 {
+  color: #475569 !important;
+}
+
+/* Textos principais nas tabelas e cards */
+html.light .bg-slate-900 p,
+html.light table td {
+  color: #1e293b !important;
+}
+html.light table td span.text-slate-200 {
+  color: #475569 !important;
+}
+html.light table td span.text-slate-500 {
+  color: #475569 !important;
+}
+
+
+/* ==========================================
+   POP-UP / TOOLTIP DO GRÁFICO (Sempre escuro com fontes brancas)
+   ========================================== */
+.recharts-default-tooltip,
+.recharts-tooltip-wrapper,
+div[class*="recharts-tooltip-wrapper"] {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  color: #ffffff !important;
+}
+
+.recharts-tooltip-label,
+.recharts-tooltip-item,
+.recharts-default-tooltip span,
+.recharts-default-tooltip p,
+.recharts-default-tooltip strong,
+div[class*="recharts-tooltip-wrapper"] span,
+div[class*="recharts-tooltip-wrapper"] p,
+div[class*="recharts-tooltip-wrapper"] div {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}

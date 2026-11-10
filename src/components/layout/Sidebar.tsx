@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { ThemeToggle } from '../ui/ThemeToggle'; // <-- 1. Importar o ThemeToggle
 import {
   LayoutDashboard,
   Bell,
@@ -25,10 +26,10 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'notifications', label: 'Notificações', icon: Bell },
     { id: 'analytics', label: 'Métricas', icon: BarChart3 },
     { id: 'transactions', label: 'Transações', icon: Receipt },
     { id: 'customers', label: 'Clientes', icon: Users },
-    { id: 'notifications', label: 'Notificações', icon: Bell },
     { id: 'settings', label: 'Configurações', icon: Settings },
   ];
 
@@ -49,7 +50,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
       </button>
 
       {/* Header da Sidebar */}
-      <div className="flex h-16 items-center px-5 gap-3 border-b border-slate-800/60">
+      <div className="logo flex h-16 items-center px-5 gap-3 border-b border-slate-800/60">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-600/20">
           <ShieldCheck className="h-5 w-5" />
         </div>
@@ -85,9 +86,15 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         })}
       </nav>
 
-      {/* Footer do Usuário */}
-      <div className="border-t border-slate-800/60 p-3">
-        <div className={cn('flex items-center gap-3 rounded-xl p-2 bg-slate-900/40 border border-slate-800/40', collapsed && 'justify-center')}>
+      {/* Footer do Usuário + Botão de Tema */}
+      <div className="footer-side border-t border-slate-800/60 p-3 space-y-2">
+        {!collapsed && (
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[11px] font-medium text-slate-400">Tema do Sistema</span>
+            <ThemeToggle /> {/* <-- 2. Botão de alternar tema visível aqui */}
+          </div>
+        )}
+        <div className={cn('user flex items-center gap-3 rounded-xl p-2 bg-slate-900/40 border border-slate-800/40', collapsed && 'justify-center')}>
           <img
             src={user?.avatarUrl || 'https://github.com/shadcn.png'}
             alt={user?.name}
