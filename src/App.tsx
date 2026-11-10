@@ -1,33 +1,52 @@
-import './App.css'
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { Login } from './pages/Login';
+import { Button } from './components/ui/Button';
+import { Card } from './components/ui/Card';
+import { LayoutDashboard, LogOut } from 'lucide-react';
+
+function DashboardContent() {
+  const { user, logout } = useAuth();
+
+  return (
+    <div className="flex min-h-screen items-center justify-center p-4 bg-[#090d16]">
+      <Card className="max-w-md w-full space-y-6 text-center">
+        <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-emerald-600/15 text-emerald-400 border border-emerald-500/20">
+          <LayoutDashboard className="h-6 w-6" />
+        </div>
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold text-white">Bem-vindo, {user?.name}!</h1>
+          <p className="text-xs text-slate-400">{user?.email}</p>
+        </div>
+        <p className="text-xs text-slate-500">
+          Sessão autenticada com sucesso. Este é o ponto de partida do nosso Dashboard SaaS.
+        </p>
+        <Button variant="danger" size="md" onClick={logout} className="w-full gap-2">
+          <LogOut className="h-4 w-4" /> Terminar sessão
+        </Button>
+      </Card>
+    </div>
+  );
+}
+
+function MainRouter() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#090d16] text-slate-400 text-sm">
+        A carregar...
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <DashboardContent /> : <Login />;
+}
 
 export function App() {
   return (
-    <div className="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-slate-900/50 border border-slate-800 rounded-2xl p-8 shadow-2xl backdrop-blur-sm text-center space-y-6">
-        
-        <div className="inline-block bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold px-3 py-1 rounded-full">
-          Ambiente React Ativo
-        </div>
-
-        <h1 className="text-2xl font-bold tracking-tight text-white">
-          Tailwind Configurado com Sucesso!
-        </h1>
-
-        <p className="text-sm text-slate-400">
-          O projeto React com Tailwind v3 está rodando perfeitamente. Pronto para começarmos a criar os componentes.
-        </p>
-
-        <div className="pt-4 flex gap-3 justify-center">
-          <button 
-            onClick={() => alert('Botão funcional no React!')} 
-            className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-xl transition shadow-lg shadow-indigo-600/20 cursor-pointer"
-          >
-            Testar Clique
-          </button>
-        </div>
-
-      </div>
-    </div>
+    <AuthProvider>
+      <MainRouter />
+    </AuthProvider>
   );
 }
 
