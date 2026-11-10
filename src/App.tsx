@@ -4,6 +4,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { MetricsGrid } from './components/dashboard/MetricsGrid';
 import { RevenueChart } from './components/dashboard/RevenueChart';
 import { RecentTransactions } from './components/dashboard/RecentTransactions';
+import { Settings } from './pages/Settings';
 import { Card } from './components/ui/Card';
 
 function DashboardShell() {
@@ -11,23 +12,21 @@ function DashboardShell() {
     <AppLayout>
       {(activeTab) => (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-white capitalize">{activeTab}</h1>
-              <p className="text-xs text-slate-400">Acompanhamento em tempo real das métricas da sua plataforma</p>
-            </div>
-            <span className="text-xs text-slate-400">Visão Geral &gt; {activeTab}</span>
-          </div>
-
-          {activeTab === 'dashboard' ? (
+          {activeTab === 'dashboard' && (
             <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-xl font-bold text-white capitalize">{activeTab}</h1>
+                  <p className="text-xs text-slate-400">Acompanhamento em tempo real das métricas da sua plataforma</p>
+                </div>
+                <span className="text-xs text-slate-400">Visão Geral &gt; {activeTab}</span>
+              </div>
               <MetricsGrid />
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <RevenueChart />
                 </div>
                 <div>
-                  {/* Espaço reservado para um widget lateral rápido (ex: distribuição de planos) */}
                   <Card className="h-full flex flex-col justify-between space-y-4">
                     <div>
                       <h3 className="text-sm font-semibold text-slate-200">Distribuição de Planos</h3>
@@ -70,15 +69,25 @@ function DashboardShell() {
               </div>
               <RecentTransactions />
             </div>
-          ) : (
-            <Card className="p-8 text-center space-y-2">
-              <h2 className="text-lg font-semibold text-slate-200">
-                Conteúdo da aba: <span className="text-indigo-400 uppercase">{activeTab}</span>
-              </h2>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                Módulo em desenvolvimento para gerenciar os dados desta seção.
-              </p>
-            </Card>
+          )}
+
+          {activeTab === 'settings' && <Settings />}
+
+          {activeTab !== 'dashboard' && activeTab !== 'settings' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h1 className="text-xl font-bold text-white capitalize">{activeTab}</h1>
+                <span className="text-xs text-slate-400">Visão Geral &gt; {activeTab}</span>
+              </div>
+              <Card className="p-8 text-center space-y-2">
+                <h2 className="text-lg font-semibold text-slate-200">
+                  Conteúdo da aba: <span className="text-indigo-400 uppercase">{activeTab}</span>
+                </h2>
+                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  Módulo em desenvolvimento para gerenciar os dados desta seção.
+                </p>
+              </Card>
+            </div>
           )}
         </div>
       )}
