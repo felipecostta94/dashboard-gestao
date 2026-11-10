@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, AuthContextType } from '../types/auth';
+import { type User, type AuthContextType } from '../types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
