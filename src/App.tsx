@@ -6,6 +6,7 @@ import { RevenueChart } from './components/dashboard/RevenueChart';
 import { RecentTransactions } from './components/dashboard/RecentTransactions';
 import { Settings } from './pages/Settings';
 import { Customers } from './pages/Customers';
+import { Analytics } from './pages/Analytics';
 import { Card } from './components/ui/Card';
 
 function DashboardShell() {
@@ -72,25 +73,29 @@ function DashboardShell() {
             </div>
           )}
 
+          {activeTab === 'analytics' && <Analytics />}
           {activeTab === 'customers' && <Customers />}
           {activeTab === 'settings' && <Settings />}
 
-          {activeTab !== 'dashboard' && activeTab !== 'customers' && activeTab !== 'settings' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h1 className="text-xl font-bold text-white capitalize">{activeTab}</h1>
-                <span className="text-xs text-slate-400">Visão Geral &gt; {activeTab}</span>
+          {activeTab !== 'dashboard' &&
+            activeTab !== 'analytics' &&
+            activeTab !== 'customers' &&
+            activeTab !== 'settings' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h1 className="text-xl font-bold text-white capitalize">{activeTab}</h1>
+                  <span className="text-xs text-slate-400">Visão Geral &gt; {activeTab}</span>
+                </div>
+                <Card className="p-8 text-center space-y-2">
+                  <h2 className="text-lg font-semibold text-slate-200">
+                    Conteúdo da aba: <span className="text-indigo-400 uppercase">{activeTab}</span>
+                  </h2>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                    Módulo em desenvolvimento para gerenciar os dados desta seção.
+                  </p>
+                </Card>
               </div>
-              <Card className="p-8 text-center space-y-2">
-                <h2 className="text-lg font-semibold text-slate-200">
-                  Conteúdo da aba: <span className="text-indigo-400 uppercase">{activeTab}</span>
-                </h2>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  Módulo em desenvolvimento para gerenciar os dados desta seção.
-                </p>
-              </Card>
-            </div>
-          )}
+            )}
         </div>
       )}
     </AppLayout>
