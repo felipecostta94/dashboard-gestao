@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard,
+  Bell,
   BarChart3,
   Receipt,
   Users,
@@ -27,6 +28,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     { id: 'analytics', label: 'Métricas', icon: BarChart3 },
     { id: 'transactions', label: 'Transações', icon: Receipt },
     { id: 'customers', label: 'Clientes', icon: Users },
+    { id: 'notifications', label: 'Notificações', icon: Bell },
     { id: 'settings', label: 'Configurações', icon: Settings },
   ];
 
