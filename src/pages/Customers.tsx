@@ -176,7 +176,7 @@ export function Customers() {
                   <td className="py-3.5 pr-3 text-slate-300 font-medium">{customer.plan}</td>
                   <td className="py-3.5 pr-3">
                     {customer.status === 'active' && <Badge variant="success">Ativo</Badge>}
-                    {customer.status === 'trial' && <Badge variant="warning">Trial</Badge>}
+                    {customer.status === 'trial' && <Badge variant="warning">Em Teste</Badge>}
                     {customer.status === 'inactive' && <Badge variant="danger">Inativo</Badge>}
                   </td>
                   <td className="py-3.5 pr-3 text-slate-200 font-semibold">{customer.spent}</td>
