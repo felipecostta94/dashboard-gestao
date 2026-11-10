@@ -1,32 +1,40 @@
-import './App.css'
+import { Button } from './components/ui/Button';
+import { Card } from './components/ui/Card';
+import { Badge } from './components/ui/Badge';
+import { TrendingUp, ArrowRight, ShieldAlert } from 'lucide-react';
 
 export function App() {
   return (
-    <div className="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-slate-900/50 border border-slate-800 rounded-2xl p-8 shadow-2xl backdrop-blur-sm text-center space-y-6">
-        
-        <div className="inline-block bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold px-3 py-1 rounded-full">
-          Ambiente React Ativo
+    <div className="flex min-h-screen items-center justify-center p-6">
+      <Card className="max-w-md w-full space-y-6">
+        <div className="flex items-center justify-between">
+          <Badge variant="success" className="gap-1">
+            <TrendingUp className="h-3 w-3" /> +14.2% este mês
+          </Badge>
+          <Badge variant="neutral">MRR</Badge>
         </div>
 
-        <h1 className="text-2xl font-bold tracking-tight text-white">
-          Tailwind Configurado com Sucesso!
-        </h1>
-
-        <p className="text-sm text-slate-400">
-          O projeto React com Tailwind v3 está rodando perfeitamente. Pronto para começarmos a criar os componentes.
-        </p>
-
-        <div className="pt-4 flex gap-3 justify-center">
-          <button 
-            onClick={() => alert('Botão funcional no React!')} 
-            className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-xl transition shadow-lg shadow-indigo-600/20 cursor-pointer"
-          >
-            Testar Clique
-          </button>
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+            Receita Recorrente
+          </p>
+          <h2 className="text-3xl font-bold tracking-tight text-white mt-1">
+            R$ 48.250,00
+          </h2>
         </div>
 
-      </div>
+        <div className="flex flex-wrap gap-3 pt-2">
+          <Button variant="primary" size="md">
+            Ver Relatórios <ArrowRight className="h-4 w-4" />
+          </Button>
+          <Button variant="secondary" size="md">
+            Filtrar
+          </Button>
+          <Button variant="danger" size="md">
+            <ShieldAlert className="h-4 w-4" /> Alerta
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 }
