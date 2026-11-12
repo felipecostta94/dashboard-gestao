@@ -1,6 +1,8 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Login } from './pages/Login';
+import { Register } from './pages/Register'; // <-- Importe a página de cadastro
 import { AppLayout } from './components/layout/AppLayout';
 import { MetricsGrid } from './components/dashboard/MetricsGrid';
 import { RevenueChart } from './components/dashboard/RevenueChart';
@@ -98,16 +100,34 @@ function MainRouter() {
     );
   }
 
-  return isAuthenticated ? <DashboardShell /> : <Login />;
+  return (
+    <Routes>
+      {/* Se não estiver autenticado, pode acessar Login ou Register */}
+      {!isAuthenticated ? (
+        <>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </>
+      ) : (
+        /* Se estiver autenticado, qualquer rota leva ao Dashboard */
+        <>
+          <Route path="/*" element={<DashboardShell />} />
+        </>
+      )}
+    </Routes>
+  );
 }
 
 export function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <MainRouter />
-      </AuthProvider>
-    </ThemeProvider>
+    <BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <MainRouter />
+        </AuthProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }
 

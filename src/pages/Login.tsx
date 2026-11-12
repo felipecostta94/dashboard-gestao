@@ -1,4 +1,6 @@
-import { useState, FormEvent } from 'react';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -13,7 +15,7 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
@@ -78,6 +80,15 @@ export function Login() {
               Entrar na plataforma
             </Button>
           </form>
+          {/* Link para ir para a página de Cadastro */}
+          <div className="text-center mt-6">
+            <p className="text-sm text-gray-400">
+              Ainda não tem uma conta?{' '}
+              <Link to="/register" className="text-indigo-400 hover:underline font-medium">
+                Criar uma conta
+              </Link>
+            </p>
+          </div>
         </Card>
       </div>
     </div>
