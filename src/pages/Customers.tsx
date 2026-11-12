@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, MoreVertical, Edit, Trash2, Search } from 'lucide-react';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Search, Filter, UserPlus, MoreHorizontal, Mail, ShieldCheck } from 'lucide-react';
 
 interface Customer {
   id: string;
   name: string;
+  companyName?: string;
   email: string;
   plan: 'Enterprise' | 'Pro' | 'Starter';
   status: 'active' | 'inactive' | 'trial';
@@ -16,10 +16,11 @@ interface Customer {
   avatar: string;
 }
 
-const CUSTOMERS_DATA: Customer[] = [
+const INITIAL_CUSTOMERS: Customer[] = [
   {
     id: 'usr_1',
     name: 'Ana Beatris',
+    companyName: 'Tech Soluções',
     email: 'ana.beatris@techsolucoes.com',
     plan: 'Enterprise',
     status: 'active',
@@ -30,6 +31,7 @@ const CUSTOMERS_DATA: Customer[] = [
   {
     id: 'usr_2',
     name: 'Carlos Eduardo',
+    companyName: 'Inovação Digital',
     email: 'carlos@inovacaodigital.io',
     plan: 'Pro',
     status: 'active',
@@ -40,6 +42,7 @@ const CUSTOMERS_DATA: Customer[] = [
   {
     id: 'usr_3',
     name: 'Fernanda Lima',
+    companyName: 'Design Studio',
     email: 'nanda.lima@designstudio.br',
     plan: 'Starter',
     status: 'trial',
@@ -50,6 +53,7 @@ const CUSTOMERS_DATA: Customer[] = [
   {
     id: 'usr_4',
     name: 'Ricardo Mendes',
+    companyName: 'Mendes Consultoria',
     email: 'ricardo@mendesconsultoria.com',
     plan: 'Pro',
     status: 'inactive',
@@ -60,139 +64,170 @@ const CUSTOMERS_DATA: Customer[] = [
 ];
 
 export function Customers() {
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const navigate = useNavigate();
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [customers, setCustomers] = useState<Customer[]>([]);
 
-  const filteredCustomers = CUSTOMERS_DATA.filter((customer) => {
-    const matchesSearch =
-      customer.name.toLowerCase().includes(search.toLowerCase()) ||
-      customer.email.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || customer.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // Carrega do localStorage ou inicializa com os dados padrão
+  useEffect(() => {
+    const saved = localStorage.getItem('saas_customers');
+    if (saved) {
+      setCustomers(JSON.parse(saved));
+    } else {
+      setCustomers(INITIAL_CUSTOMERS);
+      localStorage.setItem('saas_customers', JSON.stringify(INITIAL_CUSTOMERS));
+    }
+  }, []);
+
+  // Efeito global para fechar o menu ao clicar em QUALQUER LUGAR da tela
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      setActiveMenuId(null);
+    };
+
+    if (activeMenuId) {
+      window.addEventListener('click', handleGlobalClick);
+    }
+
+    return () => {
+      window.removeEventListener('click', handleGlobalClick);
+    };
+  }, [activeMenuId]);
+
+  const toggleMenu = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Impede que o clique no botão feche e reabra instantaneamente
+    setActiveMenuId((prev) => (prev === id ? null : id));
+  };
+
+  // Função de Exclusão funcional
+  const handleDeleteCustomer = (id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este cliente?')) {
+      const updated = customers.filter((c) => c.id !== id);
+      setCustomers(updated);
+      localStorage.setItem('saas_customers', JSON.stringify(updated));
+      setActiveMenuId(null);
+    }
+  };
+
+  const filteredCustomers = customers.filter(
+    (c) =>
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getStatusBadge = (status: Customer['status']) => {
+    switch (status) {
+      case 'active':
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ativo</span>;
+      case 'trial':
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Trial</span>;
+      case 'inactive':
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">Inativo</span>;
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Cabeçalho */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white">Gestão de Clientes</h1>
-          <p className="text-xs text-slate-400">Administre os assinantes ativos, retenção e históricos da plataforma.</p>
+          <h1 className="text-xl font-bold text-white">Clientes</h1>
+          <p className="text-xs text-slate-400">Gerencie sua base de assinantes e contas ativas</p>
         </div>
-        <Button variant="primary" size="md" className="gap-2 shrink-0">
-          <UserPlus className="h-4 w-4" /> Adicionar Cliente
+        <Button 
+          variant="primary" 
+          onClick={() => navigate('/customers/new')}
+          className="flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" /> Adicionar Cliente
         </Button>
       </div>
 
-      {/* Métricas Rápidas da Base */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="flex items-center gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/15 text-indigo-400 border border-indigo-500/20">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-xs font-medium text-slate-400">Total de Assinantes</span>
-            <p className="text-xl font-bold text-white">1.429</p>
-          </div>
-        </Card>
-        <Card className="flex items-center gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600/15 text-emerald-400 border border-emerald-500/20">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-xs font-medium text-slate-400">Contratos Ativos</span>
-            <p className="text-xl font-bold text-white">1.280</p>
-          </div>
-        </Card>
-        <Card className="flex items-center gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-600/15 text-amber-400 border border-amber-500/20">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-xs font-medium text-slate-400">Em Período de Teste</span>
-            <p className="text-xl font-bold text-white">149</p>
-          </div>
-        </Card>
-      </div>
-
-      {/* Filtros e Busca */}
-      <Card className="space-y-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-            <Input
+      <Card className="overflow-hidden">
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+          <div className="relative w-72">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+            <input
               type="text"
               placeholder="Buscar por nome ou e-mail..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-[#0b0f19] border border-slate-800 rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
             />
-          </div>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Filter className="h-4 w-4 text-slate-400" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs text-slate-200 outline-none focus:border-indigo-500"
-            >
-              <option value="all">Todos os Status</option>
-              <option value="active">Ativos</option>
-              <option value="trial">Em Teste</option>
-              <option value="inactive">Inativos</option>
-            </select>
           </div>
         </div>
 
-        {/* Tabela de Clientes */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-slate-800/80 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                <th className="pb-3 font-medium">Cliente</th>
-                <th className="pb-3 font-medium">Plano</th>
-                <th className="pb-3 font-medium">Status</th>
-                <th className="pb-3 font-medium">Total Investido</th>
-                <th className="pb-3 font-medium">Membro desde</th>
-                <th className="pb-3 font-medium text-right">Ações</th>
+              <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/50">
+                <th className="py-3 px-4 font-medium">Cliente</th>
+                <th className="py-3 px-4 font-medium">Plano</th>
+                <th className="py-3 px-4 font-medium">Status</th>
+                <th className="py-3 px-4 font-medium">Total Gasto</th>
+                <th className="py-3 px-4 font-medium">Data de Cadastro</th>
+                <th className="py-3 px-4 font-medium text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50 text-xs">
-              {filteredCustomers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-slate-900/40 transition-colors">
-                  <td className="py-3.5 pr-3">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={customer.avatar}
-                        alt={customer.name}
-                        className="h-8 w-8 rounded-full object-cover ring-1 ring-slate-700"
-                      />
-                      <div className="flex flex-col">
-                        <span className="font-medium text-slate-200">{customer.name}</span>
-                        <span className="text-[11px] text-slate-500">{customer.email}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3.5 pr-3 text-slate-300 font-medium">{customer.plan}</td>
-                  <td className="py-3.5 pr-3">
-                    {customer.status === 'active' && <Badge variant="success">Ativo</Badge>}
-                    {customer.status === 'trial' && <Badge variant="warning">Em Teste</Badge>}
-                    {customer.status === 'inactive' && <Badge variant="danger">Inativo</Badge>}
-                  </td>
-                  <td className="py-3.5 pr-3 text-slate-200 font-semibold">{customer.spent}</td>
-                  <td className="py-3.5 pr-3 text-slate-400">{customer.joinedDate}</td>
-                  <td className="py-3.5 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button className="p-1 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition-colors cursor-pointer">
-                        <Mail className="h-4 w-4" />
-                      </button>
-                      <button className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </button>
-                    </div>
+            <tbody className="divide-y divide-slate-800/60">
+              {filteredCustomers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-500">
+                    Nenhum cliente encontrado.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredCustomers.map((customer) => (
+                  <tr key={customer.id} className="hover:bg-slate-900/30 transition-colors">
+                    <td className="py-3.5 px-4 flex items-center gap-3">
+                      <img 
+                        src={customer.avatar} 
+                        alt={customer.name} 
+                        className="w-8 h-8 rounded-full object-cover border border-slate-700" 
+                      />
+                      <div>
+                        <div className="font-medium text-white">{customer.name}</div>
+                        <div className="text-slate-400 text-[11px]">{customer.email}</div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 font-medium text-slate-200">{customer.plan}</td>
+                    <td className="py-3.5 px-4">{getStatusBadge(customer.status)}</td>
+                    <td className="py-3.5 px-4 font-semibold text-emerald-400">{customer.spent}</td>
+                    <td className="py-3.5 px-4 text-slate-400">{customer.joinedDate}</td>
+                    <td className="py-3.5 px-4 text-right relative">
+                      <button
+                        onClick={(e) => toggleMenu(customer.id, e)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+
+                      {activeMenuId === customer.id && (
+                        <div 
+                          onClick={(e) => e.stopPropagation()} // Impede que cliques dentro do próprio menu fechem ele
+                          className="absolute right-12 bottom-2 w-36 bg-[#111827] border border-slate-800 rounded-xl shadow-2xl py-1 z-50 text-left"
+                        >
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              navigate(`/customers/edit/${customer.id}`);
+                            }}
+                            className="w-full px-3 py-2 text-xs text-slate-300 hover:bg-indigo-600/10 hover:text-indigo-400 flex items-center gap-2 transition-colors"
+                          >
+                            <Edit className="w-3.5 h-3.5" /> Editar
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCustomer(customer.id)}
+                            className="w-full px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Excluir
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
