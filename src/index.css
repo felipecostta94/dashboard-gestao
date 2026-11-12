@@ -104,13 +104,15 @@ html.light label.text-slate-300 {
 }
 
 /* Textos principais nas tabelas e cards */
+html.light table tr.bg-slate-900\/50{
+  background-color: color-mix(in oklab, var(--color-slate-300) 50%, transparent);
+}
 html.light .bg-slate-900 p,
 html.light table td {
   color: #1e293b !important;
 }
-html.light table td span.text-slate-200 {
-  color: #475569 !important;
-}
+html.light table td div div,
+html.light table td span.text-slate-200,
 html.light table td span.text-slate-500 {
   color: #475569 !important;
 }
