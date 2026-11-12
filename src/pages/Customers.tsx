@@ -1,67 +1,30 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, MoreVertical, Edit, Trash2, Search } from 'lucide-react';
+import { Plus, MoreVertical, Trash2, Search } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+
+interface Transaction {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  plan: string;
+  amount: number | string;
+  status: 'paid' | 'pending' | 'overdue' | string;
+  date: string;
+  dueDate: string;
+}
 
 interface Customer {
   id: string;
   name: string;
-  companyName?: string;
   email: string;
-  plan: 'Enterprise' | 'Pro' | 'Starter';
+  plan: string;
   status: 'active' | 'inactive' | 'trial';
   spent: string;
   joinedDate: string;
   avatar: string;
 }
-
-const INITIAL_CUSTOMERS: Customer[] = [
-  {
-    id: 'usr_1',
-    name: 'Ana Beatris',
-    companyName: 'Tech Soluções',
-    email: 'ana.beatris@techsolucoes.com',
-    plan: 'Enterprise',
-    status: 'active',
-    spent: 'R$ 14.500,00',
-    joinedDate: '15 Jan 2026',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-  },
-  {
-    id: 'usr_2',
-    name: 'Carlos Eduardo',
-    companyName: 'Inovação Digital',
-    email: 'carlos@inovacaodigital.io',
-    plan: 'Pro',
-    status: 'active',
-    spent: 'R$ 1.798,80',
-    joinedDate: '02 Fev 2026',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-  },
-  {
-    id: 'usr_3',
-    name: 'Fernanda Lima',
-    companyName: 'Design Studio',
-    email: 'nanda.lima@designstudio.br',
-    plan: 'Starter',
-    status: 'trial',
-    spent: 'R$ 0,00',
-    joinedDate: '01 Nov 2026',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-  },
-  {
-    id: 'usr_4',
-    name: 'Ricardo Mendes',
-    companyName: 'Mendes Consultoria',
-    email: 'ricardo@mendesconsultoria.com',
-    plan: 'Pro',
-    status: 'inactive',
-    spent: 'R$ 899,40',
-    joinedDate: '10 Mar 2026',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-  },
-];
 
 export function Customers() {
   const navigate = useNavigate();
@@ -69,18 +32,71 @@ export function Customers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [customers, setCustomers] = useState<Customer[]>([]);
 
-  // Carrega do localStorage ou inicializa com os dados padrão
+  // Sincroniza e deriva os clientes convertendo corretamente os valores e status do localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('saas_customers');
-    if (saved) {
-      setCustomers(JSON.parse(saved));
-    } else {
-      setCustomers(INITIAL_CUSTOMERS);
-      localStorage.setItem('saas_customers', JSON.stringify(INITIAL_CUSTOMERS));
+    const savedTransactions = localStorage.getItem('saas_transactions');
+    if (savedTransactions) {
+      try {
+        const parsed: Transaction[] = JSON.parse(savedTransactions);
+        
+        const clientMap: Record<string, { name: string; email: string; plan: string; totalSpent: number; status: 'active' | 'inactive' | 'trial'; date: string }> = {};
+
+        parsed.forEach((tx) => {
+          const email = (tx.customerEmail || '').toLowerCase();
+          if (!email) return;
+
+          // Converte o amount com segurança (seja string formatada ou número)
+          let rawAmount = tx.amount;
+          let numericAmount = 0;
+          if (typeof rawAmount === 'string') {
+            numericAmount = parseFloat(
+              rawAmount.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()
+            ) || 0;
+          } else {
+            numericAmount = Number(rawAmount) || 0;
+          }
+
+          const statusStr = String(tx.status || '').toLowerCase();
+          const isPaid = statusStr === 'paid' || statusStr === 'pago';
+
+          if (!clientMap[email]) {
+            clientMap[email] = {
+              name: tx.customerName || 'Cliente sem nome',
+              email: tx.customerEmail,
+              plan: (tx.plan || 'Pro').split(' ')[0],
+              totalSpent: isPaid ? numericAmount : 0,
+              status: isPaid ? 'active' : (tx.plan || '').toLowerCase().includes('trial') ? 'trial' : 'inactive',
+              date: tx.date || '-',
+            };
+          } else {
+            if (isPaid) {
+              clientMap[email].totalSpent += numericAmount;
+              clientMap[email].status = 'active';
+            }
+            clientMap[email].plan = (tx.plan || 'Pro').split(' ')[0];
+          }
+        });
+
+        const derivedCustomers: Customer[] = Object.values(clientMap).map((c, index) => ({
+          id: `usr_dyn_${index + 1}`,
+          name: c.name,
+          email: c.email,
+          plan: c.plan.includes('Enterprise') ? 'Enterprise' : c.plan.includes('Starter') ? 'Starter' : 'Pro',
+          status: c.status,
+          spent: c.totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+          joinedDate: c.date,
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c.name)}`,
+        }));
+
+        setCustomers(derivedCustomers);
+      } catch (err) {
+        console.error("Erro ao processar transações para clientes:", err);
+        setCustomers([]);
+      }
     }
   }, []);
 
-  // Efeito global para fechar o menu ao clicar em QUALQUER LUGAR da tela
+  // Efeito global para fechar o menu ao clicar fora
   useEffect(() => {
     const handleGlobalClick = () => {
       setActiveMenuId(null);
@@ -96,16 +112,20 @@ export function Customers() {
   }, [activeMenuId]);
 
   const toggleMenu = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Impede que o clique no botão feche e reabra instantaneamente
+    e.stopPropagation();
     setActiveMenuId((prev) => (prev === id ? null : id));
   };
 
-  // Função de Exclusão funcional
-  const handleDeleteCustomer = (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este cliente?')) {
-      const updated = customers.filter((c) => c.id !== id);
-      setCustomers(updated);
-      localStorage.setItem('saas_customers', JSON.stringify(updated));
+  const handleDeleteCustomer = (emailToRemove: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este cliente e seu histórico associado?')) {
+      const savedTransactions = localStorage.getItem('saas_transactions');
+      if (savedTransactions) {
+        const parsed: Transaction[] = JSON.parse(savedTransactions);
+        const filtered = parsed.filter((tx) => tx.customerEmail.toLowerCase() !== emailToRemove.toLowerCase());
+        localStorage.setItem('saas_transactions', JSON.stringify(filtered));
+        
+        setCustomers((prev) => prev.filter((c) => c.email.toLowerCase() !== emailToRemove.toLowerCase()));
+      }
       setActiveMenuId(null);
     }
   };
@@ -119,32 +139,32 @@ export function Customers() {
   const getStatusBadge = (status: Customer['status']) => {
     switch (status) {
       case 'active':
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ativo</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ativo</span>;
       case 'trial':
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Trial</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Trial</span>;
       case 'inactive':
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">Inativo</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">Inativo</span>;
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white">Clientes</h1>
-          <p className="text-xs text-slate-400">Gerencie sua base de assinantes e contas ativas</p>
+          <h1 className="text-xl font-bold text-white">Clientes & Assinantes</h1>
+          <p className="text-xs text-slate-400">Base sincronizada automaticamente com o histórico de transações</p>
         </div>
         <Button 
           variant="primary" 
-          onClick={() => navigate('/customers/new')}
-          className="flex items-center gap-2"
+          onClick={() => navigate('/transactions')}
+          className="flex items-center gap-2 text-xs"
         >
-          <Plus className="w-4 h-4" /> Adicionar Cliente
+          <Plus className="w-4 h-4" /> Gerenciar na Fatura
         </Button>
       </div>
 
-      <Card className="overflow-hidden">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+      <Card className="overflow-hidden border-slate-800 bg-slate-900/40">
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
           <div className="relative w-72">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
             <input
@@ -152,38 +172,41 @@ export function Customers() {
               placeholder="Buscar por nome ou e-mail..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#0b0f19] border border-slate-800 rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-[#0b0f19] border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
             />
+          </div>
+          <div className="text-xs text-indigo-400 font-medium">
+            Total: {filteredCustomers.length} cliente(s)
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/50">
-                <th className="py-3 px-4 font-medium">Cliente</th>
-                <th className="py-3 px-4 font-medium">Plano</th>
-                <th className="py-3 px-4 font-medium">Status</th>
-                <th className="py-3 px-4 font-medium">Total Gasto</th>
-                <th className="py-3 px-4 font-medium">Data de Cadastro</th>
-                <th className="py-3 px-4 font-medium text-right">Ações</th>
+              <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/30">
+                <th className="py-3 px-4 font-semibold">Cliente</th>
+                <th className="py-3 px-4 font-semibold">Plano</th>
+                <th className="py-3 px-4 font-semibold">Status</th>
+                <th className="py-3 px-4 font-semibold">Total Gasto</th>
+                <th className="py-3 px-4 font-semibold">Data de Cadastro</th>
+                <th className="py-3 px-4 font-semibold text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
               {filteredCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-500">
-                    Nenhum cliente encontrado.
+                  <td colSpan={6} className="py-12 text-center text-slate-500">
+                    Nenhum cliente encontrado. Adicione transações na aba correspondente.
                   </td>
                 </tr>
               ) : (
                 filteredCustomers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-slate-900/30 transition-colors">
+                  <tr key={customer.id} className="hover:bg-slate-900/40 transition-colors">
                     <td className="py-3.5 px-4 flex items-center gap-3">
                       <img 
                         src={customer.avatar} 
                         alt={customer.name} 
-                        className="w-8 h-8 rounded-full object-cover border border-slate-700" 
+                        className="w-8 h-8 rounded-full object-cover border border-slate-700 bg-slate-800" 
                       />
                       <div>
                         <div className="font-medium text-white">{customer.name}</div>
@@ -197,28 +220,19 @@ export function Customers() {
                     <td className="py-3.5 px-4 text-right relative">
                       <button
                         onClick={(e) => toggleMenu(customer.id, e)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
                       >
                         <MoreVertical className="w-4 h-4" />
                       </button>
 
                       {activeMenuId === customer.id && (
                         <div 
-                          onClick={(e) => e.stopPropagation()} // Impede que cliques dentro do próprio menu fechem ele
+                          onClick={(e) => e.stopPropagation()}
                           className="absolute right-12 bottom-2 w-36 bg-[#111827] border border-slate-800 rounded-xl shadow-2xl py-1 z-50 text-left"
                         >
                           <button
-                            onClick={() => {
-                              setActiveMenuId(null);
-                              navigate(`/customers/edit/${customer.id}`);
-                            }}
-                            className="w-full px-3 py-2 text-xs text-slate-300 hover:bg-indigo-600/10 hover:text-indigo-400 flex items-center gap-2 transition-colors"
-                          >
-                            <Edit className="w-3.5 h-3.5" /> Editar
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCustomer(customer.id)}
-                            className="w-full px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-colors"
+                            onClick={() => handleDeleteCustomer(customer.email)}
+                            className="w-full px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" /> Excluir
                           </button>

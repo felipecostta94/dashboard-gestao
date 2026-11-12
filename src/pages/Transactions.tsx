@@ -63,13 +63,16 @@ export function Transactions() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Estados do formulário de nova cobrança (Iniciando com Pro como padrão)
+  // Estados do formulário de nova cobrança
   const [newCustomerName, setNewCustomerName] = useState('');
   const [newCustomerEmail, setNewCustomerEmail] = useState('');
   const [newPlan, setNewPlan] = useState('Pro (Mensal)');
   const [newAmount, setNewAmount] = useState('899.40');
-  
-  // Função auxiliar para calcular data formatada para inputs (yyyy-mm-dd) adicionando dias ou anos
+
+  // Lista de clientes existentes extraída do localStorage para auto-preenchimento
+  const [existingClients, setExistingClients] = useState<{ name: string; email: string }[]>([]);
+
+  // Função auxiliar para calcular data formatada para inputs (yyyy-mm-dd)
   const getCalculatedDate = (daysToAdd: number = 30, addYears: number = 0) => {
     const d = new Date();
     if (addYears > 0) {
@@ -80,7 +83,7 @@ export function Transactions() {
     return d.toISOString().split('T')[0];
   };
 
-  const [newDueDate, setNewDueDate] = useState(getCalculatedDate(30)); // Inicializa padrão 30 dias para o Pro
+  const [newDueDate, setNewDueDate] = useState(getCalculatedDate(30));
 
   // Tabela de preços pré-definidos por plano
   const planDefaultPrices: Record<string, string> = {
@@ -91,6 +94,7 @@ export function Transactions() {
     'Cobrança Avulsa': '150.00',
   };
 
+  // Carrega transações e extrai clientes únicos
   useEffect(() => {
     const saved = localStorage.getItem('saas_transactions');
     if (saved) {
@@ -103,19 +107,34 @@ export function Transactions() {
             : Number(tx.amount) || 0,
         }));
         setTransactions(sanitized);
+        extractClients(sanitized);
       } catch (e) {
         setTransactions(INITIAL_TRANSACTIONS);
+        extractClients(INITIAL_TRANSACTIONS);
         localStorage.setItem('saas_transactions', JSON.stringify(INITIAL_TRANSACTIONS));
       }
     } else {
       setTransactions(INITIAL_TRANSACTIONS);
+      extractClients(INITIAL_TRANSACTIONS);
       localStorage.setItem('saas_transactions', JSON.stringify(INITIAL_TRANSACTIONS));
     }
   }, []);
 
+  const extractClients = (txList: Transaction[]) => {
+    const map: Record<string, string> = {};
+    txList.forEach((tx) => {
+      if (tx.customerName && tx.customerEmail) {
+        map[tx.customerName] = tx.customerEmail;
+      }
+    });
+    const unique = Object.keys(map).map((name) => ({ name, email: map[name] }));
+    setExistingClients(unique);
+  };
+
   const saveToStorage = (updated: Transaction[]) => {
     setTransactions(updated);
     localStorage.setItem('saas_transactions', JSON.stringify(updated));
+    extractClients(updated);
   };
 
   // Monitora mudança de plano para atualizar valor e calcular automaticamente a data de vencimento
@@ -124,15 +143,25 @@ export function Transactions() {
     const defaultVal = planDefaultPrices[planValue] || '0.00';
     setNewAmount(defaultVal);
 
-    // Regras automáticas de vencimento por plano
     if (planValue.includes('Enterprise')) {
-      setNewDueDate(getCalculatedDate(0, 1)); // 1 ano à frente
+      setNewDueDate(getCalculatedDate(0, 1));
     } else if (planValue.includes('Trial')) {
-      setNewDueDate(getCalculatedDate(15)); // 15 dias corridos
+      setNewDueDate(getCalculatedDate(15));
     } else if (planValue.includes('Avulsa')) {
-      setNewDueDate(getCalculatedDate(10)); // 10 dias corridos
-    }else {
-      setNewDueDate(getCalculatedDate(30)); // 30 dias padrão para mensais/avulsa
+      setNewDueDate(getCalculatedDate(10));
+    } else {
+      setNewDueDate(getCalculatedDate(30));
+    }
+  };
+
+  // Seleção inteligente do cliente existente
+  const handleSelectClient = (name: string) => {
+    setNewCustomerName(name);
+    const found = existingClients.find((c) => c.name === name);
+    if (found) {
+      setNewCustomerEmail(found.email);
+    } else {
+      setNewCustomerEmail('');
     }
   };
 
@@ -142,7 +171,7 @@ export function Transactions() {
 
     const isTrial = newPlan.includes('Trial');
     const today = new Date();
-    const dueDateObj = new Date(newDueDate + 'T00:00:00'); // Garante leitura correta do input date
+    const dueDateObj = new Date(newDueDate + 'T00:00:00');
     
     const finalAmount = isTrial ? 0.00 : (parseFloat(newAmount) || 0);
 
@@ -278,7 +307,7 @@ export function Transactions() {
         </div>
       </div>
 
-      {/* Cards de Resumo Dinâmicos */}
+      {/* Cards de Resumo */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-4 flex items-center justify-between">
           <div>
@@ -387,7 +416,7 @@ export function Transactions() {
         </div>
       </Card>
 
-      {/* Modal de Nova Cobrança */}
+      {/* Modal de Nova Cobrança com Auto-preenchimento Inteligente */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-[#111827] border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
@@ -397,7 +426,7 @@ export function Transactions() {
               </h2>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
+                className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -405,7 +434,24 @@ export function Transactions() {
 
             <form onSubmit={handleCreateCharge} className="p-4 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Nome do Cliente *</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Cliente *</label>
+                <select
+                  value={newCustomerName}
+                  onChange={(e) => handleSelectClient(e.target.value)}
+                  className="w-full bg-[#0b0f19] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
+                  required
+                >
+                  <option value="">Selecione um cliente existente ou digite abaixo...</option>
+                  {existingClients.map((c, i) => (
+                    <option key={i} value={c.name}>
+                      {c.name} ({c.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Nome do Cliente (Novo ou Editável) *</label>
                 <input
                   type="text"
                   required
@@ -417,9 +463,10 @@ export function Transactions() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">E-mail do Cliente</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1">E-mail do Cliente (Auto-preenchido) *</label>
                 <input
                   type="email"
+                  required
                   placeholder="contato@empresa.com"
                   value={newCustomerEmail}
                   onChange={(e) => setNewCustomerEmail(e.target.value)}
@@ -432,7 +479,7 @@ export function Transactions() {
                 <select
                   value={newPlan}
                   onChange={(e) => handlePlanChange(e.target.value)}
-                  className="w-full bg-[#0b0f19] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[#0b0f19] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
                 >
                   <option value="Enterprise (Anual)">Enterprise (Anual)</option>
                   <option value="Pro (Mensal)">Pro (Mensal)</option>
@@ -477,11 +524,11 @@ export function Transactions() {
                   type="button" 
                   variant="outline" 
                   onClick={() => setIsModalOpen(false)}
-                  className="text-xs border-slate-700 text-slate-300"
+                  className="text-xs border-slate-700 text-slate-300 cursor-pointer"
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" variant="primary" className="text-xs">
+                <Button type="submit" variant="primary" className="text-xs cursor-pointer">
                   Gerar Cobrança
                 </Button>
               </div>
